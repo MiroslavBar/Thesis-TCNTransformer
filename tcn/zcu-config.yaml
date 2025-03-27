@@ -1,0 +1,31 @@
+#data
+data_file_binary: "D:\\mb\\preprocessed_data_zcu_dataset/data_time_series_binary.npy"
+labels_file_binary: "D:\\mb\\preprocessed_data_zcu_dataset/labels_time_series_binary.npy"
+data_file_multiclass: "D:\\mb\\preprocessed_data_zcu_dataset/data_time_series_multiclass.npy"
+labels_file_multiclass: "D:\\mb\\preprocessed_data_zcu_dataset/labels_time_series_multiclass.npy"
+
+#training
+strategy: "all"  # Options: "all", "per_person"
+batch_size: 32
+epochs: 100
+lr: 0.0001
+preferred_device: gpu
+nGPU: 0
+
+#model
+network_args:
+  num_classes: 2
+  num_channels: 3
+  num_samples: 2000
+  embed_dim: 24
+  pool_size: 50
+  pool_stride: 20
+  num_heads: 8
+  fc_ratio: 4
+  depth: 3
+  attn_drop: 0.7
+  fc_drop: 0.7
+
+# Data augmentation
+num_classes: 3
+num_segs: 5

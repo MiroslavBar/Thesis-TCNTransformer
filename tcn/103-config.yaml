@@ -1,0 +1,28 @@
+# Configuration for TCN-Transformer EEG Model
+
+# Data settings
+csv_files: "D:\\mb\\103_data\\eegmmidb"  # Path to your CSV files directory
+num_samples: 700     # Number of time samples per trial
+
+# Model training settings
+batch_size: 32
+epochs: 100
+learning_rate: 0.0001
+
+# Training strategy
+# Options: "global" (all subjects combined) or "per_subject" (train model per subject)
+strategy: "global"
+
+# TCN model parameters
+tcn_params:
+  nb_filters: 128
+  kernel_size: 3
+  dilations: [1, 2, 4, 8, 16, 32]
+  nb_stacks: 2
+  dropout_rate: 0.3
+
+# Transformer model parameters
+transformer_params:
+  num_heads: 4
+  key_dim: 128
+  dropout_rate: 0.2
