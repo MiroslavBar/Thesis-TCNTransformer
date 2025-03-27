@@ -1,0 +1,245 @@
+D:\mb\TCN\venv\Scripts\python.exe D:\mb\TCN\tcn\zcu-train.py 
+Found 1 GPU(s):
+ - /physical_device:GPU:0
+✅ GPU memory growth enabled
+✅ Mixed precision training enabled (float16 for faster computation)
+Data loaded successfully from D:\mb\preprocessed_data_zcu_dataset/data_time_series_multiclass.npy. Shape: (29,)
+Labels loaded successfully from D:\mb\preprocessed_data_zcu_dataset/labels_time_series_multiclass.npy. Shape: (29,)
+Original data shape: (2718, 3, 2000)
+Dataset has 3 classes
+Train set distribution: [641 602 659]
+Val set distribution: [92 86 94]
+Test set distribution: [183 172 189]
+2025-03-25 14:21:18.288429: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-03-25 14:21:18.440353: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1616] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 9706 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 3060, pci bus id: 0000:09:00.0, compute capability: 8.6
+x.shape= (None, 2000, 64)
+model.x = (None, 2000, 3)
+model.y = (None, 2000, 3)
+Model: "model_1"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_1 (InputLayer)           [(None, 2000, 3)]    0           []                               
+                                                                                                  
+ tcn (TCN)                      (None, 2000, 64)     87360       ['input_1[0][0]']                
+                                                                                                  
+ dense_1 (Dense)                (None, 2000, 64)     4160        ['tcn[1][0]']                    
+                                                                                                  
+ tf.__operators__.add (TFOpLamb  (None, 2000, 64)    0           ['dense_1[0][0]']                
+ da)                                                                                              
+                                                                                                  
+ multi_head_attention (MultiHea  (None, 2000, 64)    66368       ['tf.__operators__.add[0][0]',   
+ dAttention)                                                      'tf.__operators__.add[0][0]']   
+                                                                                                  
+ dropout (Dropout)              (None, 2000, 64)     0           ['multi_head_attention[0][0]']   
+                                                                                                  
+ add (Add)                      (None, 2000, 64)     0           ['tf.__operators__.add[0][0]',   
+                                                                  'dropout[0][0]']                
+                                                                                                  
+ layer_normalization (LayerNorm  (None, 2000, 64)    128         ['add[0][0]']                    
+ alization)                                                                                       
+                                                                                                  
+ dense_2 (Dense)                (None, 2000, 256)    16640       ['layer_normalization[0][0]']    
+                                                                                                  
+ dense_3 (Dense)                (None, 2000, 64)     16448       ['dense_2[0][0]']                
+                                                                                                  
+ dropout_1 (Dropout)            (None, 2000, 64)     0           ['dense_3[0][0]']                
+                                                                                                  
+ add_1 (Add)                    (None, 2000, 64)     0           ['layer_normalization[0][0]',    
+                                                                  'dropout_1[0][0]']              
+                                                                                                  
+ layer_normalization_1 (LayerNo  (None, 2000, 64)    128         ['add_1[0][0]']                  
+ rmalization)                                                                                     
+                                                                                                  
+ global_average_pooling1d (Glob  (None, 64)          0           ['layer_normalization_1[0][0]']  
+ alAveragePooling1D)                                                                              
+                                                                                                  
+ dense_4 (Dense)                (None, 3)            195         ['global_average_pooling1d[0][0]'
+                                                                 ]                                
+                                                                                                  
+==================================================================================================
+Total params: 191,427
+Trainable params: 191,427
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Epoch 1/100
+2025-03-25 14:21:23.724374: I tensorflow/stream_executor/cuda/cuda_dnn.cc:384] Loaded cuDNN version 8600
+60/60 [==============================] - 15s 171ms/step - loss: 1.2007 - accuracy: 0.3528 - val_loss: 1.1900 - val_accuracy: 0.3162 - lr: 0.0010
+Epoch 2/100
+60/60 [==============================] - 11s 183ms/step - loss: 1.1139 - accuracy: 0.3538 - val_loss: 1.1387 - val_accuracy: 0.3566 - lr: 0.0010
+Epoch 3/100
+60/60 [==============================] - 10s 165ms/step - loss: 1.1041 - accuracy: 0.3764 - val_loss: 1.0978 - val_accuracy: 0.3640 - lr: 0.0010
+Epoch 4/100
+60/60 [==============================] - 9s 153ms/step - loss: 1.0823 - accuracy: 0.3980 - val_loss: 1.0916 - val_accuracy: 0.4596 - lr: 0.0010
+Epoch 5/100
+60/60 [==============================] - 9s 153ms/step - loss: 1.0557 - accuracy: 0.4338 - val_loss: 1.0624 - val_accuracy: 0.4154 - lr: 0.0010
+Epoch 6/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.9965 - accuracy: 0.4811 - val_loss: 1.0749 - val_accuracy: 0.4375 - lr: 8.5000e-04
+Epoch 7/100
+60/60 [==============================] - 11s 183ms/step - loss: 0.9752 - accuracy: 0.4958 - val_loss: 0.9587 - val_accuracy: 0.5147 - lr: 8.5000e-04
+Epoch 8/100
+60/60 [==============================] - 10s 170ms/step - loss: 0.9508 - accuracy: 0.5063 - val_loss: 1.0790 - val_accuracy: 0.4559 - lr: 8.5000e-04
+Epoch 9/100
+60/60 [==============================] - 9s 156ms/step - loss: 0.9366 - accuracy: 0.5189 - val_loss: 0.9382 - val_accuracy: 0.5000 - lr: 8.5000e-04
+Epoch 10/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.9196 - accuracy: 0.5315 - val_loss: 0.9036 - val_accuracy: 0.5588 - lr: 8.5000e-04
+Epoch 11/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.9174 - accuracy: 0.5273 - val_loss: 0.9223 - val_accuracy: 0.5404 - lr: 7.2250e-04
+Epoch 12/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.9246 - accuracy: 0.5095 - val_loss: 0.9366 - val_accuracy: 0.5294 - lr: 7.2250e-04
+Epoch 13/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.9164 - accuracy: 0.5163 - val_loss: 0.9550 - val_accuracy: 0.4963 - lr: 7.2250e-04
+Epoch 14/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8864 - accuracy: 0.5457 - val_loss: 1.0253 - val_accuracy: 0.4522 - lr: 7.2250e-04
+Epoch 15/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8863 - accuracy: 0.5547 - val_loss: 0.9154 - val_accuracy: 0.5404 - lr: 7.2250e-04
+Epoch 16/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8697 - accuracy: 0.5536 - val_loss: 0.9710 - val_accuracy: 0.5074 - lr: 6.1412e-04
+Epoch 17/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.8805 - accuracy: 0.5494 - val_loss: 0.8907 - val_accuracy: 0.5478 - lr: 6.1412e-04
+Epoch 18/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.8628 - accuracy: 0.5573 - val_loss: 0.8988 - val_accuracy: 0.5515 - lr: 6.1412e-04
+Epoch 19/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8622 - accuracy: 0.5605 - val_loss: 0.9327 - val_accuracy: 0.5441 - lr: 6.1412e-04
+Epoch 20/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8647 - accuracy: 0.5736 - val_loss: 0.9129 - val_accuracy: 0.5551 - lr: 6.1412e-04
+Epoch 21/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8496 - accuracy: 0.5626 - val_loss: 0.9148 - val_accuracy: 0.5551 - lr: 5.2201e-04
+Epoch 22/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8407 - accuracy: 0.5699 - val_loss: 0.9391 - val_accuracy: 0.5515 - lr: 5.2201e-04
+Epoch 23/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8452 - accuracy: 0.5720 - val_loss: 0.8974 - val_accuracy: 0.5147 - lr: 5.2201e-04
+Epoch 24/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8322 - accuracy: 0.5894 - val_loss: 0.9029 - val_accuracy: 0.5772 - lr: 2.6100e-04
+Epoch 25/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8239 - accuracy: 0.5857 - val_loss: 0.9202 - val_accuracy: 0.5515 - lr: 5.2201e-04
+Epoch 26/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.8374 - accuracy: 0.5773 - val_loss: 0.8848 - val_accuracy: 0.5772 - lr: 4.4371e-04
+Epoch 27/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8282 - accuracy: 0.5899 - val_loss: 0.9155 - val_accuracy: 0.5662 - lr: 4.4371e-04
+Epoch 28/100
+60/60 [==============================] - 10s 162ms/step - loss: 0.8095 - accuracy: 0.6062 - val_loss: 0.9179 - val_accuracy: 0.5515 - lr: 4.4371e-04
+Epoch 29/100
+60/60 [==============================] - 9s 156ms/step - loss: 0.8035 - accuracy: 0.6052 - val_loss: 0.9391 - val_accuracy: 0.5588 - lr: 4.4371e-04
+Epoch 30/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.8006 - accuracy: 0.5978 - val_loss: 0.8709 - val_accuracy: 0.5809 - lr: 4.4371e-04
+Epoch 31/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7877 - accuracy: 0.6109 - val_loss: 0.8828 - val_accuracy: 0.5735 - lr: 3.7715e-04
+Epoch 32/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7889 - accuracy: 0.6215 - val_loss: 0.8611 - val_accuracy: 0.5625 - lr: 3.7715e-04
+Epoch 33/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7835 - accuracy: 0.6241 - val_loss: 0.9592 - val_accuracy: 0.5368 - lr: 3.7715e-04
+Epoch 34/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7844 - accuracy: 0.6104 - val_loss: 0.9141 - val_accuracy: 0.5368 - lr: 3.7715e-04
+Epoch 35/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7708 - accuracy: 0.6272 - val_loss: 0.8710 - val_accuracy: 0.5919 - lr: 3.7715e-04
+Epoch 36/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7636 - accuracy: 0.6356 - val_loss: 0.8869 - val_accuracy: 0.5772 - lr: 3.2058e-04
+Epoch 37/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7466 - accuracy: 0.6351 - val_loss: 0.9580 - val_accuracy: 0.5662 - lr: 3.2058e-04
+Epoch 38/100
+60/60 [==============================] - 10s 160ms/step - loss: 0.7424 - accuracy: 0.6441 - val_loss: 0.8976 - val_accuracy: 0.5699 - lr: 3.2058e-04
+Epoch 39/100
+60/60 [==============================] - 10s 160ms/step - loss: 0.7447 - accuracy: 0.6425 - val_loss: 0.9060 - val_accuracy: 0.5515 - lr: 1.6029e-04
+Epoch 40/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7428 - accuracy: 0.6546 - val_loss: 0.9094 - val_accuracy: 0.5662 - lr: 3.2058e-04
+Epoch 41/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7289 - accuracy: 0.6514 - val_loss: 0.9105 - val_accuracy: 0.5515 - lr: 2.7249e-04
+Epoch 42/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7163 - accuracy: 0.6493 - val_loss: 0.9447 - val_accuracy: 0.5478 - lr: 2.7249e-04
+Epoch 43/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7149 - accuracy: 0.6651 - val_loss: 0.9057 - val_accuracy: 0.5551 - lr: 2.7249e-04
+Epoch 44/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7211 - accuracy: 0.6530 - val_loss: 0.9073 - val_accuracy: 0.5551 - lr: 2.7249e-04
+Epoch 45/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.7137 - accuracy: 0.6509 - val_loss: 0.9086 - val_accuracy: 0.5478 - lr: 2.7249e-04
+Epoch 46/100
+60/60 [==============================] - 9s 153ms/step - loss: 0.6998 - accuracy: 0.6677 - val_loss: 0.9235 - val_accuracy: 0.5515 - lr: 1.1581e-04
+Epoch 47/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6959 - accuracy: 0.6709 - val_loss: 0.9073 - val_accuracy: 0.5809 - lr: 2.3162e-04
+Epoch 48/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6842 - accuracy: 0.6893 - val_loss: 0.9972 - val_accuracy: 0.5735 - lr: 2.3162e-04
+Epoch 49/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6930 - accuracy: 0.6635 - val_loss: 0.9527 - val_accuracy: 0.5368 - lr: 2.3162e-04
+Epoch 50/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6688 - accuracy: 0.6777 - val_loss: 0.9384 - val_accuracy: 0.5699 - lr: 2.3162e-04
+Epoch 51/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6849 - accuracy: 0.6719 - val_loss: 0.9200 - val_accuracy: 0.5699 - lr: 1.9687e-04
+Epoch 52/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6658 - accuracy: 0.6814 - val_loss: 0.9395 - val_accuracy: 0.5625 - lr: 1.9687e-04
+Epoch 53/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6734 - accuracy: 0.6835 - val_loss: 0.9358 - val_accuracy: 0.5735 - lr: 1.0000e-04
+Epoch 54/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6622 - accuracy: 0.6887 - val_loss: 0.9235 - val_accuracy: 0.5662 - lr: 1.9687e-04
+Epoch 55/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6453 - accuracy: 0.6930 - val_loss: 0.9824 - val_accuracy: 0.5257 - lr: 1.9687e-04
+Epoch 56/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6553 - accuracy: 0.6940 - val_loss: 0.9705 - val_accuracy: 0.5331 - lr: 1.6734e-04
+Epoch 57/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6471 - accuracy: 0.7040 - val_loss: 0.9641 - val_accuracy: 0.5662 - lr: 1.6734e-04
+Epoch 58/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6202 - accuracy: 0.7198 - val_loss: 1.0161 - val_accuracy: 0.5772 - lr: 1.6734e-04
+Epoch 59/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6375 - accuracy: 0.7045 - val_loss: 0.9543 - val_accuracy: 0.5368 - lr: 1.6734e-04
+Epoch 60/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6331 - accuracy: 0.6982 - val_loss: 0.9689 - val_accuracy: 0.5699 - lr: 1.0000e-04
+Epoch 61/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6177 - accuracy: 0.7161 - val_loss: 1.0281 - val_accuracy: 0.5441 - lr: 1.4224e-04
+Epoch 62/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6260 - accuracy: 0.7140 - val_loss: 0.9924 - val_accuracy: 0.5772 - lr: 1.4224e-04
+Epoch 63/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6393 - accuracy: 0.7024 - val_loss: 0.9781 - val_accuracy: 0.5478 - lr: 1.4224e-04
+Epoch 64/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6051 - accuracy: 0.7198 - val_loss: 1.0194 - val_accuracy: 0.5772 - lr: 1.4224e-04
+Epoch 65/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.5925 - accuracy: 0.7208 - val_loss: 1.0435 - val_accuracy: 0.5956 - lr: 1.4224e-04
+Epoch 66/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6204 - accuracy: 0.7024 - val_loss: 0.9950 - val_accuracy: 0.5699 - lr: 1.2091e-04
+Epoch 67/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6077 - accuracy: 0.7166 - val_loss: 1.0341 - val_accuracy: 0.5294 - lr: 1.0000e-04
+Epoch 68/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.5951 - accuracy: 0.7319 - val_loss: 1.0233 - val_accuracy: 0.5515 - lr: 1.2091e-04
+Epoch 69/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.6023 - accuracy: 0.7240 - val_loss: 1.0076 - val_accuracy: 0.5478 - lr: 1.2091e-04
+Epoch 70/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.5817 - accuracy: 0.7303 - val_loss: 1.0410 - val_accuracy: 0.5588 - lr: 1.2091e-04
+Epoch 71/100
+60/60 [==============================] - 9s 154ms/step - loss: 0.5870 - accuracy: 0.7313 - val_loss: 1.0119 - val_accuracy: 0.5588 - lr: 1.0277e-04
+Epoch 72/100
+60/60 [==============================] - 9s 155ms/step - loss: 0.5928 - accuracy: 0.7366 - val_loss: 1.0155 - val_accuracy: 0.5662 - lr: 1.0277e-04
+17/17 [==============================] - 1s 52ms/step
+
+Test Accuracy: 0.5625
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.67      0.67      0.67       183
+           1       0.47      0.50      0.48       172
+           2       0.55      0.52      0.53       189
+
+    accuracy                           0.56       544
+   macro avg       0.56      0.56      0.56       544
+weighted avg       0.56      0.56      0.56       544
+
+Model saved to tcn_transformer_eeg_global_model.h5
+
+Process finished with exit code 0
+
+ tcn_layer = compiled_tcn(
+        num_feat=num_features,
+        num_classes=num_classes,
+        nb_filters=64,  # Reduced from 256
+        kernel_size=3,  # Increased kernel size
+        dilations=[1, 2, 4, 8],  # Reduced dilation complexity
+        nb_stacks=1,  # Reduced stacks
+        max_len=timesteps,
+        use_skip_connections=True,
+        return_sequences=True,
+        regression=False,
+        dropout_rate=0.2,  # Reduced dropout
+        activation='relu',
+        opt='adam',
+        lr=0.001
+    )
