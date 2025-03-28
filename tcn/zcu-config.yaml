@@ -1,31 +1,53 @@
-#data
-data_file_binary: "D:\\mb\\preprocessed_data_zcu_dataset/data_time_series_binary.npy"
-labels_file_binary: "D:\\mb\\preprocessed_data_zcu_dataset/labels_time_series_binary.npy"
-data_file_multiclass: "D:\\mb\\preprocessed_data_zcu_dataset/data_time_series_multiclass.npy"
-labels_file_multiclass: "D:\\mb\\preprocessed_data_zcu_dataset/labels_time_series_multiclass.npy"
+# EEG Classification Model Configuration
 
-#training
-strategy: "all"  # Options: "all", "per_person"
-batch_size: 32
-epochs: 100
-lr: 0.0001
-preferred_device: gpu
-nGPU: 0
+# Data Paths
+data:
+  data_file_binary: "C:/FAV/FAV/3.rocnik/bakalarka/Thienuv_navrh/preprocessed_data_zcu_dataset/data_time_series_binary.npy"
+  labels_file_binary: "C:/FAV/FAV/3.rocnik/bakalarka/Thienuv_navrh/preprocessed_data_zcu_dataset/labels_time_series_binary.npy"
+  data_file_multiclass: "C:/FAV/FAV/3.rocnik/bakalarka/Thienuv_navrh/preprocessed_data_zcu_dataset/data_time_series_multiclass.npy"
+  labels_file_multiclass: "C:/FAV/FAV/3.rocnik/bakalarka/Thienuv_navrh/preprocessed_data_zcu_dataset/labels_time_series_multiclass.npy"
+  test_size: 0.2
+  validation_size: 0.1
 
-#model
+# Network Architecture Parameters
 network_args:
-  num_classes: 2
-  num_channels: 3
-  num_samples: 2000
-  embed_dim: 24
-  pool_size: 50
-  pool_stride: 20
-  num_heads: 8
-  fc_ratio: 4
-  depth: 3
-  attn_drop: 0.7
-  fc_drop: 0.7
+  num_classes: 3  # 2 for binary, 3 for multiclass
 
-# Data augmentation
-num_classes: 3
-num_segs: 5
+# Model Architecture
+model:
+  # TCN (Temporal Convolutional Network) Parameters
+  tcn:
+    nb_filters: 64
+    kernel_size: 3
+    dilations: [1, 2, 4, 8]
+    nb_stacks: 1
+    use_skip_connections: True
+    dropout_rate: 0.2
+    activation: 'relu'
+
+  # Transformer Encoder Parameters
+  transformer:
+    num_heads: 4
+    key_dim: 64
+    dropout_rate: 0.2
+
+# Training Hyperparameters
+training:
+  batch_size: 32
+  epochs: 100
+  learning_rate: 0.001
+  early_stopping_patience: 40
+  reduce_lr_patience: 7
+  min_learning_rate: 0.0001
+
+# GPU Configuration
+gpu:
+  enable: True
+  memory_growth: True
+  mixed_precision: True
+
+# Logging
+logging:
+  model_path: "zcu_tcn_transformer_model.h5"
+  training_history_plot: "zcu_tcn_transformer_training_history.png"
+  confusion_matrix_plot: "zcu_tcn_transformer_confusion_matrix.png"

@@ -1,79 +1,32 @@
-import sys
-import os
+import argparse
 import numpy as np
-import yaml
-import tensorflow as tf
-import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.preprocessing import StandardScaler
+import matplotlib
+from typing import Dict, Optional, Tuple, Any
 
-# Import required modules from TCN and Transformer implementations
-from tcn import compiled_tcn
-from transformer import transformer_encoder_block
 
-def configure_gpu(use_gpu=True, memory_growth=True, mixed_precision=True):
-    """
-    Configures TensorFlow to use the GPU efficiently.
-    """
-    if not use_gpu:
-        os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Force CPU mode
-        print("GPU disabled. Running on CPU.")
-        return
+from common_utils import (
+    load_config,
+    configure_gpu,
+    build_tcn_transformer_model,
+    train_model,
+    evaluate_model,
+    plot_training_history,
+    plot_confusion_matrix
+)
 
-    gpus = tf.config.list_physical_devices('GPU')
-    if gpus:
-        print(f"Found {len(gpus)} GPU(s):")
-        for gpu in gpus:
-            print(f" - {gpu.name}")
-
-        if memory_growth:
-            try:
-                for gpu in gpus:
-                    tf.config.experimental.set_memory_growth(gpu, True)
-                print("✅ GPU memory growth enabled")
-            except Exception as e:
-                print(f"⚠️ Error setting memory growth: {e}")
-
-        if mixed_precision:
-            try:
-                from tensorflow.keras.mixed_precision import set_global_policy
-                set_global_policy('mixed_float16')
-                print("✅ Mixed precision training enabled (float16 for faster computation)")
-            except Exception as e:
-                print(f"⚠️ Error enabling mixed precision: {e}")
+def get_data_path(config: Dict[str, Any]) -> Tuple[Optional[str], Optional[str]]:
+    if config['network_args']['num_classes'] == 2:
+        return config['data']['data_file_binary'], config['data']['labels_file_binary']
+    elif config['network_args']['num_classes'] == 3:
+        return config['data']['data_file_multiclass'], config['data']['labels_file_multiclass']
     else:
-        print("⚠️ No GPU found. Running on CPU.")
+        print("Invalid number of classes in configuration.")
+        return None, None
 
 
-def load_config(config_path):
-    """Load configuration from YAML file."""
-    try:
-        with open(config_path, "r") as file:
-            config = yaml.safe_load(file)
-        return config
-    except FileNotFoundError:
-        print(f"Error: Config file {config_path} not found.")
-        sys.exit()
-    except yaml.YAMLError as e:
-        print(f"Error parsing YAML file: {e}")
-        sys.exit()
-
-
-def transform_labels(labels):
-    """
-    Transform labels to match the format expected by the model:
-    Original labels: 2 -> 0, 5 -> 1, 6 -> 2
-    """
-
-    transformed_labels = labels.copy()
-    transformed_labels[transformed_labels == 2] = 0
-    transformed_labels[transformed_labels == 5] = 1
-    transformed_labels[transformed_labels == 6] = 2
-    return transformed_labels
-
-
-def load_npy_files(data_file, labels_file):
+def load_npy_files(data_file: str, labels_file: str) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
     try:
         data = np.load(data_file, allow_pickle=True)
         print(f"Data loaded successfully from {data_file}. Shape: {data.shape}")
@@ -90,34 +43,53 @@ def load_npy_files(data_file, labels_file):
         return None, None
 
 
-def get_data_path(config):
-    if config['network_args']['num_classes'] == 2:
-        return config['data_file_binary'], config['labels_file_binary']
-    elif config['network_args']['num_classes'] == 3:
-        return config['data_file_multiclass'], config['labels_file_multiclass']
-    else:
-        print("Invalid number of classes in configuration.")
-        return None, None
+def transform_labels(labels: np.ndarray) -> np.ndarray:
+    """
+    Transform original labels to a zero-based indexing system.
+
+    Original label mapping:
+    - 2 -> 0
+    - 5 -> 1
+    - 6 -> 2
+
+    Args:
+        labels: Original labels array.
+
+    Returns:
+        np.ndarray: Transformed labels array.
+    """
+    transformed_labels = labels.copy()
+    transformed_labels[transformed_labels == 2] = 0
+    transformed_labels[transformed_labels == 5] = 1
+    transformed_labels[transformed_labels == 6] = 2
+    return transformed_labels
 
 
-def preprocess_data_for_tf(X, y, test_size=0.2, val_size=0.1):
+def preprocess_data_for_tf(
+    X: np.ndarray,
+    y: np.ndarray,
+    config: Dict[str, Any]
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, int]:
     """
     Preprocess the EEG dataset for TCN-Transformer model.
 
     Args:
-        X: Data in shape [n_samples, n_channels, n_times]
-        y: Labels
-        test_size: Proportion of data to use for testing
-        val_size: Proportion of training data to use for validation
+        X: Input data.
+        y: Input labels.
+        config: Configuration dictionary.
 
     Returns:
-        X_train, X_val, X_test, y_train, y_val, y_test, num_classes
+        Tuple containing train, validation, and test sets for X and y, and number of classes
     """
     print(f"Original data shape: {X.shape}")
 
-    # Get number of classes
-    num_classes = len(np.unique(y))
+    # Get number of classes from config
+    num_classes = config['network_args']['num_classes']
     print(f"Dataset has {num_classes} classes")
+
+    # Extract preprocessing parameters from config
+    test_size = config['data']['test_size']
+    val_size = config['data']['validation_size']
 
     # Normalize each channel separately
     X_normalized = np.zeros_like(X, dtype=np.float32)
@@ -156,205 +128,32 @@ def preprocess_data_for_tf(X, y, test_size=0.2, val_size=0.1):
 
     return X_train, X_val, X_test, y_train, y_val, y_test, num_classes
 
-def build_tcn_transformer_model(timesteps, num_features, num_classes):
+
+def train_and_test_model(data: np.ndarray, labels: np.ndarray, config: Dict[str, Any]) -> None:
     """
-    Build the TCN model with a Transformer encoder for EEG classification.
+    Train a global model using combined data from all subjects.
+
+    Args:
+        data: Combined dataset.
+        labels: Labels for the dataset.
+        config: Configuration dictionary.
     """
-    # Create input layer
-    input_layer = tf.keras.layers.Input(shape=(timesteps, num_features))
-
-    # Define TCN model parameters
-    tcn_layer = compiled_tcn(
-        num_feat=num_features,
-        num_classes=num_classes,
-        nb_filters=64,  # Reduced from 256
-        kernel_size=3,  # Increased kernel size
-        dilations=[1, 2, 4, 8],  # Reduced dilation complexity
-        nb_stacks=1,  # Reduced stacks
-        max_len=timesteps,
-        use_skip_connections=True,
-        return_sequences=True,
-        regression=False,
-        dropout_rate=0.2,  # Reduced dropout
-        activation='relu',
-        opt='adam',
-        lr=0.001
-    )
-
-    # Extract the TCN layer from the compiled model
-    tcn_output = tcn_layer.layers[1](input_layer)
-
-    # Add an interface layer to match dimensions
-    interface_layer = tf.keras.layers.Dense(64, activation='relu')(tcn_output)
-
-    # Add transformer encoder block
-    transformer_output = transformer_encoder_block(
-        inputs=interface_layer,
-        num_heads=4,
-        key_dim=64,
-        dropout_rate=0.2
-    )
-
-    # Global Average Pooling for sequence aggregation
-    gap_output = tf.keras.layers.GlobalAveragePooling1D()(transformer_output)
-
-    # Final classification layer
-    output_layer = tf.keras.layers.Dense(num_classes, activation='softmax')(gap_output)
-
-    # Create the combined model
-    model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-    # Compile the model
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(),
-        loss='sparse_categorical_crossentropy',
-        metrics=['accuracy']
-    )
-
-    # Model summary
-    model.summary()
-
-    return model
-
-
-def train_model(model, X_train, X_val, y_train, y_val, batch_size=32, epochs=100):
-    """
-    Train the TCN-Transformer model with class balancing and callbacks.
-    """
-    # Define callbacks
-    early_stopping = tf.keras.callbacks.EarlyStopping(
-        monitor='val_loss',
-        patience=40,
-        restore_best_weights=True
-    )
-
-    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
-        monitor='val_loss',
-        factor=0.5,
-        patience=7,
-        min_lr=0.0001
-    )
-
-    # Add learning rate scheduler for better convergence
-    lr_scheduler = tf.keras.callbacks.LearningRateScheduler(
-        lambda epoch: 0.001 * (0.85 ** (epoch // 5))
-    )
-
-    # Train the model
-    history = model.fit(
-        X_train, y_train,
-        batch_size=batch_size,
-        epochs=epochs,
-        validation_data=(X_val, y_val),
-        callbacks=[early_stopping, reduce_lr, lr_scheduler],
-        verbose=1
-    )
-
-    return history
-
-
-def evaluate_model(model, X_test, y_test):
-    """
-    Evaluate the trained model on the test set.
-    """
-    # Predict classes
-    y_pred_prob = model.predict(X_test)
-    y_pred = np.argmax(y_pred_prob, axis=1)
-    y_true = y_test
-
-    # Calculate accuracy
-    acc = accuracy_score(y_true, y_pred)
-
-    # Generate classification report
-    report = classification_report(y_true, y_pred)
-
-    # Generate confusion matrix
-    cm = confusion_matrix(y_true, y_pred)
-
-    return acc, report, cm, y_pred
-
-
-def plot_training_history(history, filename='training_history.png'):
-    """
-    Plot training and validation loss/accuracy.
-    """
-    plt.figure(figsize=(12, 5))
-
-    # Plot loss
-    plt.subplot(1, 2, 1)
-    plt.plot(history.history['loss'], label='Training Loss')
-    plt.plot(history.history['val_loss'], label='Validation Loss')
-    plt.title('Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.legend()
-
-    # Plot accuracy
-    plt.subplot(1, 2, 2)
-    plt.plot(history.history['accuracy'], label='Training Accuracy')
-    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-    plt.title('Accuracy')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.legend()
-
-    plt.tight_layout()
-    plt.savefig(filename)
-    plt.show()
-
-
-def plot_confusion_matrix(cm, classes, filename='confusion_matrix.png'):
-    """
-    Plot confusion matrix.
-    """
-    plt.figure(figsize=(10, 8))
-    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title('Confusion Matrix')
-    plt.colorbar()
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=45)
-    plt.yticks(tick_marks, classes)
-
-    # Add text annotations
-    thresh = cm.max() / 2.
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            plt.text(j, i, format(cm[i, j], 'd'),
-                     horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black")
-
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-    plt.savefig(filename)
-    plt.show()
-
-
-def train_and_test_model(data, labels, config):
-    """
-    Train and test the TCN-Transformer model on the entire dataset or per-person
-    """
-    # Transform labels to match the expected format
-
-    # Split data by training strategy
     # Concatenate all data and train a global model
     data = np.concatenate(data, axis=0)
     labels = np.concatenate(labels, axis=0)
     labels = transform_labels(labels)
 
     # Preprocess the data
-    X_train, X_val, X_test, y_train, y_val, y_test, num_classes = preprocess_data_for_tf(data, labels)
+    X_train, X_val, X_test, y_train, y_val, y_test, num_classes = preprocess_data_for_tf(data, labels, config)
 
     # Get model dimensions
     timesteps, num_features = X_train.shape[1], X_train.shape[2]
 
-    # Build and train the model
-    model = build_tcn_transformer_model(timesteps, num_features, num_classes)
+    # Build the model with configuration
+    model = build_tcn_transformer_model(timesteps, num_features, num_classes, config)
 
     # Train the model
-    history = train_model(model, X_train, X_val, y_train, y_val,
-                          batch_size=config.get('batch_size', 32),
-                          epochs=config.get('epochs', 100))
+    history = train_model(model, X_train, X_val, y_train, y_val, config)
 
     # Evaluate the model
     acc, report, cm, y_pred = evaluate_model(model, X_test, y_test)
@@ -363,29 +162,26 @@ def train_and_test_model(data, labels, config):
     print("\nClassification Report:")
     print(report)
 
-    # Plot results
-    plot_training_history(history, 'global_training_history.png')
-    plot_confusion_matrix(cm, np.arange(num_classes), 'global_confusion_matrix.png')
+    plot_training_history(history, config)
+    plot_confusion_matrix(cm, np.arange(num_classes), config)
 
     # Save the model
-    model.save('tcn_transformer_eeg_global_model.h5')
-    print("Model saved to tcn_transformer_eeg_global_model.h5")
+    model.save(config['logging']['model_path'])
+    print("Model saved")
 
 
+def main() -> None:
+    # Parse command-line arguments to support different config files
+    parser = argparse.ArgumentParser(description='EEG Classification Model')
+    parser.add_argument('--config', default='zcu-config.yaml', help='Path to configuration file')
+    args = parser.parse_args()
 
-def main():
-    # Configure GPU
-    configure_gpu(use_gpu=True, memory_growth=True, mixed_precision=True)
-
-    # Load configuration
-    config = load_config("zcu-config.yaml")
+    # Configure GPU based on configuration
+    config = load_config(args.config)
+    configure_gpu(config)
 
     # Get the appropriate data files based on number of classes
     data_file, labels_file = get_data_path(config)
-
-    if data_file is None or labels_file is None:
-        print("Invalid data paths in configuration.")
-        sys.exit()
 
     # Load data
     data, labels = load_npy_files(data_file, labels_file)
@@ -396,8 +192,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # Use TkAgg backend for matplotlib to ensure plot display
-    import matplotlib
 
     matplotlib.use('TkAgg')
     main()

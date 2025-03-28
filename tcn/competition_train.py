@@ -1,33 +1,49 @@
+import argparse
 import numpy as np
 import os
-import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import tensorflow as tf
-from tensorflow.keras.layers import LayerNormalization, MultiHeadAttention, Dense, Add, Dropout
-from sklearn.preprocessing import RobustScaler
+import matplotlib
+from typing import Dict, List, Tuple, Any
 
-from tcn import compiled_tcn
-from transformer import transformer_encoder_block
 
-# Set random seed for reproducibility
+from common_utils import (
+    load_config,
+    configure_gpu,
+    build_tcn_transformer_model,
+    train_model,
+    evaluate_model,
+    plot_training_history,
+    plot_confusion_matrix
+)
+
 np.random.seed(42)
 tf.random.set_seed(42)
 
 
-def load_and_combine_data(data_dir, subjects=range(1, 10)):
+def load_and_combine_data(
+    data_dir: str,
+    subjects: List[int] =None
+) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Load and combine data from multiple subjects in the BCI IV 2a dataset.
+    Load and combine EEG data from multiple subjects in the BCI IV 2a dataset.
+
+    This function reads data and label files for specified subjects from a given directory,
+    combines them into a single dataset, and adjusts class labels to be 0-indexed.
 
     Args:
-        data_dir: Directory containing the dataset files
-        subjects: List of subject numbers to include
+        data_dir: Path to the directory containing dataset files
+        subjects: List of subject numbers to include in the dataset (default: 1-9)
 
     Returns:
-        X: Combined data from all subjects [n_samples, n_channels, n_times]
-        y: Combined labels from all subjects [n_samples]
+        A tuple containing:
+        - X: Combined EEG data with shape [n_samples, n_channels, n_times]
+        - y: Combined labels with shape [n_samples]
     """
+    if subjects is None:
+        subjects = list(range(1, 10))
+
     X_all = []
     y_all = []
 
@@ -55,20 +71,26 @@ def load_and_combine_data(data_dir, subjects=range(1, 10)):
     return X, y
 
 
-def preprocess_data(X, y, test_size=0.2, val_size=0.1):
+def preprocess_data_for_tf(
+    X: np.ndarray,
+    y: np.ndarray,
+    config: Dict[str, Any]
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, int]:
     """
-    Preprocess the BCI IV 2a dataset for TCN model.
+    Preprocess the EEG dataset for TCN-Transformer model.
 
     Args:
-        X: Data in shape [n_samples, n_channels, n_times]
-        y: Labels
-        test_size: Proportion of data to use for testing
-        val_size: Proportion of training data to use for validation
+        X: Input data.
+        y: Input labels.
+        config: Configuration dictionary.
 
     Returns:
-        X_train, X_val, X_test, y_train, y_val, y_test, num_classes
+        Tuple containing train, validation, and test sets for X and y, and number of classes
     """
     print(f"Original data shape: {X.shape}")
+
+    test_size = config['data']['test_size']
+    val_size = config['data']['validation_size']
 
     # Get number of classes
     num_classes = len(np.unique(y))
@@ -113,286 +135,58 @@ def preprocess_data(X, y, test_size=0.2, val_size=0.1):
     return X_train, X_val, X_test, y_train, y_val, y_test, num_classes
 
 
-def build_and_train_model(X_train, X_val, y_train, y_val, num_classes, batch_size=64, epochs=100):
+def train_and_test_model(data: np.ndarray, labels: np.ndarray, config: Dict[str, Any]) -> None:
     """
-    Build and train the TCN model with a Transformer encoder.
+    Train a global model using combined data from all subjects.
 
     Args:
-        X_train: Training data
-        X_val: Validation data
-        y_train: Training labels (one-hot encoded)
-        y_val: Validation labels (one-hot encoded)
-        num_classes: Number of classes
-        batch_size: Batch size for training
-        epochs: Number of epochs to train
+        data: Combined dataset.
+        labels: Labels for the dataset.
+        config: Configuration dictionary.
+        """
+    X_train, X_val, X_test, y_train, y_val, y_test, num_classes = preprocess_data_for_tf(data, labels, config)
 
-    Returns:
-        Trained model and training history
-    """
     # Get model dimensions
     timesteps, num_features = X_train.shape[1], X_train.shape[2]
 
-    # Create input layer
-    input_layer = tf.keras.layers.Input(shape=(timesteps, num_features))
-
-    # Define TCN model parameters
-    tcn_layer = compiled_tcn(
-        num_feat=num_features,
-        num_classes=num_classes,
-        nb_filters=32,  # Reduced from 256
-        kernel_size=2,  # Increased kernel size
-        dilations=[1, 2, 4, 8],  # Reduced dilation complexity
-        nb_stacks=1,  # Reduced stacks
-        max_len=timesteps,
-        use_skip_connections=True,
-        return_sequences=True,
-        regression=False,
-        dropout_rate=0.2,  # Reduced dropout
-        activation='relu',
-        opt='adam',
-        lr=0.001
-    )
-
-    # Extract the TCN layer from the compiled model
-    tcn_output = tcn_layer.layers[1](input_layer)
-
-    # Add an interface layer to match dimensions
-    interface_layer = Dense(128, activation='relu')(tcn_output)
-
-    # Add transformer encoder block
-    transformer_output = transformer_encoder_block(
-        inputs=interface_layer,
-        num_heads=4,  # Number of attention heads 4
-        key_dim=128,  # Dimension of the key (same as TCN filters)
-        dropout_rate=0.2  # Dropout rate for transformer 2
-    )
-
-    # Global Average Pooling for sequence aggregation
-    gap_output = tf.keras.layers.GlobalAveragePooling1D()(transformer_output)
-
-    # Final classification layer
-    output_layer = tf.keras.layers.Dense(num_classes, activation='softmax')(gap_output)
-
-    # Create the combined model
-    model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-    # Compile the model
-
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(),
-        loss='sparse_categorical_crossentropy',
-        metrics=['accuracy']
-    )
-
-    # Model summary
-    model.summary()
-
-    # Define callbacks
-    early_stopping = tf.keras.callbacks.EarlyStopping(
-        monitor='val_loss',
-        patience=30, #30
-        restore_best_weights=True
-    )
-
-    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
-        monitor='val_loss',
-        factor=0.5,
-        patience=15, #15
-        min_lr=0.0001
-    )
-
-    # Add learning rate scheduler for better convergence
-    lr_scheduler = tf.keras.callbacks.LearningRateScheduler(
-        lambda epoch: 0.001 * (0.85 ** (epoch // 5))
-    )
+    # Build the model with configuration
+    model = build_tcn_transformer_model(timesteps, num_features, num_classes, config)
 
     # Train the model
-    history = model.fit(
-        X_train, y_train,
-        batch_size=batch_size,
-        epochs=epochs,
-        validation_data=(X_val, y_val),
-        callbacks=[early_stopping, reduce_lr, lr_scheduler],
-        verbose=1
-    )
+    history = train_model(model, X_train, X_val, y_train, y_val, config)
 
-    return model, history
-
-
-def evaluate_model(model, X_test, y_test):
-    """
-    Evaluate the trained model on the test set.
-
-    Args:
-        model: Trained TCN model
-        X_test: Test data
-        y_test: Test labels (one-hot encoded)
-
-    Returns:
-        Test accuracy, classification report, and confusion matrix
-    """
-    # Predict classes
-    y_pred_prob = model.predict(X_test)
-    y_pred = np.argmax(y_pred_prob, axis=1)
-    y_true = y_test
-
-    # Calculate accuracy
-    acc = accuracy_score(y_true, y_pred)
-
-    # Generate classification report
-    report = classification_report(y_true, y_pred)
-
-    # Generate confusion matrix
-    cm = confusion_matrix(y_true, y_pred)
-
-    return acc, report, cm, y_pred
-
-
-def plot_training_history(history):
-    """
-    Plot training and validation loss/accuracy.
-
-    Args:
-        history: Training history from model.fit()
-    """
-    plt.figure(figsize=(12, 5))
-
-    # Plot loss
-    plt.subplot(1, 2, 1)
-    plt.plot(history.history['loss'], label='Training Loss')
-    plt.plot(history.history['val_loss'], label='Validation Loss')
-    plt.title('Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.legend()
-
-    # Plot accuracy
-    plt.subplot(1, 2, 2)
-    plt.plot(history.history['accuracy'], label='Training Accuracy')
-    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-    plt.title('Accuracy')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.legend()
-
-    plt.tight_layout()
-    plt.savefig('tcn_transformer_training_history.png')
-    plt.show()
-
-
-def plot_confusion_matrix(cm, classes):
-    """
-    Plot confusion matrix.
-
-    Args:
-        cm: Confusion matrix
-        classes: Class labels
-    """
-    plt.figure(figsize=(10, 8))
-    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title('Confusion Matrix')
-    plt.colorbar()
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=45)
-    plt.yticks(tick_marks, classes)
-
-    # Add text annotations
-    thresh = cm.max() / 2.
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            plt.text(j, i, format(cm[i, j], 'd'),
-                     horizontalalignment="center",
-                     color="white" if cm[i, j] > thresh else "black")
-
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-    plt.savefig('tcn_transformer_confusion_matrix.png')
-    plt.show()
-
-
-
-def configure_gpu(use_gpu=True, memory_growth=True, mixed_precision=True):
-    """
-    Configures TensorFlow to use the GPU efficiently.
-
-    Args:
-        use_gpu (bool): Whether to use the GPU or force CPU usage.
-        memory_growth (bool): Whether to enable memory growth for GPUs.
-        mixed_precision (bool): Whether to enable mixed precision training.
-    """
-    if not use_gpu:
-        os.environ["CUDA_VISIBLE_DEVICES"] = "-1"  # Force CPU mode
-        print("GPU disabled. Running on CPU.")
-        return
-
-    gpus = tf.config.list_physical_devices('GPU')
-    if gpus:
-        print(f"Found {len(gpus)} GPU(s):")
-        for gpu in gpus:
-            print(f" - {gpu.name}")
-
-        if memory_growth:
-            try:
-                for gpu in gpus:
-                    tf.config.experimental.set_memory_growth(gpu, True)
-                print("✅ GPU memory growth enabled")
-            except Exception as e:
-                print(f"⚠️ Error setting memory growth: {e}")
-
-        if mixed_precision:
-            try:
-                from tensorflow.keras.mixed_precision import set_global_policy
-                set_global_policy('mixed_float16')
-                print("✅ Mixed precision training enabled (float16 for faster computation)")
-            except Exception as e:
-                print(f"⚠️ Error enabling mixed precision: {e}")
-
-    else:
-        print("⚠️ No GPU found. Running on CPU.")
-
-
-
-
-
-def main():
-    # Set parameters
-    data_dir = "D:\mb\competition_dataset\\bci_iv_2a"  # Directory with the preprocessed data
-    batch_size = 64
-    epochs = 100
-
-    # Load and combine data from all subjects
-    X, y = load_and_combine_data(data_dir)
-
-    # Preprocess data
-    X_train, X_val, X_test, y_train, y_val, y_test, num_classes = preprocess_data(X, y)
-
-    # Build and train model
-    model, history = build_and_train_model(X_train, X_val, y_train, y_val, num_classes, batch_size, epochs)
-
-    # Evaluate model
+    # Evaluate the model
     acc, report, cm, y_pred = evaluate_model(model, X_test, y_test)
 
-    # Print evaluation results
     print(f"\nTest Accuracy: {acc:.4f}")
     print("\nClassification Report:")
     print(report)
 
-    # Plot results
-    plot_training_history(history)
-    plot_confusion_matrix(cm, np.arange(num_classes))
+    plot_training_history(history, config)
+    plot_confusion_matrix(cm, np.arange(num_classes), config)
 
     # Save the model
-    model.save('tcn_transformer_bci_iv_2a_model.h5')
-    print("Model saved to tcn_transformer_bci_iv_2a_model.h5")
+    model.save(config['logging']['model_path'])
+    print("Model saved")
 
 
+def main() -> None:
+    # Parse command-line arguments to support different config files
+    parser = argparse.ArgumentParser(description='EEG Classification Model')
+    parser.add_argument('--config', default='competition-config.yaml', help='Path to configuration file')
+    args = parser.parse_args()
+
+    # Configure GPU based on configuration
+    config = load_config(args.config)
+    configure_gpu(config)
+
+    # Load and combine data from all subjects
+    data, labels = load_and_combine_data(config['data']['data_dir'])
+
+    if data is not None and labels is not None:
+        # Train and test the model
+        train_and_test_model(data, labels, config)
 
 if __name__ == "__main__":
-    import matplotlib
-
     matplotlib.use('TkAgg')
-
-    configure_gpu(use_gpu=True, memory_growth=True, mixed_precision=True)
-
     main()
