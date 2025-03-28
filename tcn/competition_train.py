@@ -102,7 +102,6 @@ def preprocess_data_for_tf(
     print(f"Transposed data to: {X.shape} (samples, timesteps, channels)")
 
     # Normalize the features using StandardScaler
-    # We need to reshape to 2D for scaling (combine samples*timesteps, features)
     orig_shape = X.shape
     X_reshaped = X.reshape(-1, X.shape[-1])
     scaler = StandardScaler()
@@ -118,12 +117,12 @@ def preprocess_data_for_tf(
 
     X_train, X_val, y_train, y_val = train_test_split(
         X_train, y_train,
-        test_size=val_size / (1 - test_size),  # Adjust val_size to be relative to remaining data
+        test_size=val_size / (1 - test_size),
         random_state=42,
         stratify=y_train
     )
 
-    # Convert labels to integers instead of float32
+    # Convert labels to integers
     y_train = y_train.astype(np.int32)
     y_val = y_val.astype(np.int32)
     y_test = y_test.astype(np.int32)
@@ -171,7 +170,6 @@ def train_and_test_model(data: np.ndarray, labels: np.ndarray, config: Dict[str,
 
 
 def main() -> None:
-    # Parse command-line arguments to support different config files
     parser = argparse.ArgumentParser(description='EEG Classification Model')
     parser.add_argument('--config', default='competition-config.yaml', help='Path to configuration file')
     args = parser.parse_args()

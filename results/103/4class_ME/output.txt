@@ -1,0 +1,214 @@
+D:\mb\TCN\venv\Scripts\python.exe D:\mb\TCN\tcn\103-train.py 
+Found 1 GPU(s):
+ - /physical_device:GPU:0
+Loading global dataset...
+Original data shape: (9332, 64, 700)
+Dataset has 4 classes
+Transposed data to: (9332, 700, 64) (samples, timesteps, channels)
+Train set: (6531, 700, 64), (6531,)
+Validation set: (934, 700, 64), (934,)
+Test set: (1867, 700, 64), (1867,)
+Building TCN-Transformer model...
+2025-03-28 09:21:47.387833: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2025-03-28 09:21:47.575420: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1616] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 9706 MB memory:  -> device: 0, name: NVIDIA GeForce RTX 3060, pci bus id: 0000:09:00.0, compute capability: 8.6
+x.shape= (None, 700, 64)
+model.x = (None, 700, 64)
+model.y = (None, 700, 4)
+Model: "model_1"
+__________________________________________________________________________________________________
+ Layer (type)                   Output Shape         Param #     Connected to                     
+==================================================================================================
+ input_1 (InputLayer)           [(None, 700, 64)]    0           []                               
+                                                                                                  
+ tcn (TCN)                      (None, 700, 64)      66048       ['input_1[0][0]']                
+                                                                                                  
+ dense_1 (Dense)                (None, 700, 128)     8320        ['tcn[1][0]']                    
+                                                                                                  
+ tf.__operators__.add (TFOpLamb  (None, 700, 128)    0           ['dense_1[0][0]']                
+ da)                                                                                              
+                                                                                                  
+ multi_head_attention (MultiHea  (None, 700, 128)    263808      ['tf.__operators__.add[0][0]',   
+ dAttention)                                                      'tf.__operators__.add[0][0]']   
+                                                                                                  
+ dropout (Dropout)              (None, 700, 128)     0           ['multi_head_attention[0][0]']   
+                                                                                                  
+ add (Add)                      (None, 700, 128)     0           ['tf.__operators__.add[0][0]',   
+                                                                  'dropout[0][0]']                
+                                                                                                  
+ layer_normalization (LayerNorm  (None, 700, 128)    256         ['add[0][0]']                    
+ alization)                                                                                       
+                                                                                                  
+ dense_2 (Dense)                (None, 700, 512)     66048       ['layer_normalization[0][0]']    
+                                                                                                  
+ dense_3 (Dense)                (None, 700, 128)     65664       ['dense_2[0][0]']                
+                                                                                                  
+ dropout_1 (Dropout)            (None, 700, 128)     0           ['dense_3[0][0]']                
+                                                                                                  
+ add_1 (Add)                    (None, 700, 128)     0           ['layer_normalization[0][0]',    
+                                                                  'dropout_1[0][0]']              
+                                                                                                  
+ layer_normalization_1 (LayerNo  (None, 700, 128)    256         ['add_1[0][0]']                  
+ rmalization)                                                                                     
+                                                                                                  
+ global_average_pooling1d (Glob  (None, 128)         0           ['layer_normalization_1[0][0]']  
+ alAveragePooling1D)                                                                              
+                                                                                                  
+ dense_4 (Dense)                (None, 4)            516         ['global_average_pooling1d[0][0]'
+                                                                 ]                                
+                                                                                                  
+==================================================================================================
+Total params: 470,916
+Trainable params: 470,916
+Non-trainable params: 0
+__________________________________________________________________________________________________
+Training model...
+Epoch 1/100
+2025-03-28 09:21:58.623782: I tensorflow/stream_executor/cuda/cuda_dnn.cc:384] Loaded cuDNN version 8600
+2025-03-28 09:21:59.065111: I tensorflow/stream_executor/cuda/cuda_blas.cc:1614] TensorFloat-32 will be used for the matrix multiplication. This will only be logged once.
+205/205 [==============================] - 24s 101ms/step - loss: 1.4465 - accuracy: 0.2635 - val_loss: 1.4158 - val_accuracy: 0.2505 - lr: 0.0010
+Epoch 2/100
+205/205 [==============================] - 19s 93ms/step - loss: 1.4138 - accuracy: 0.2655 - val_loss: 1.3787 - val_accuracy: 0.2859 - lr: 0.0010
+Epoch 3/100
+205/205 [==============================] - 19s 93ms/step - loss: 1.3650 - accuracy: 0.3067 - val_loss: 1.3544 - val_accuracy: 0.3266 - lr: 0.0010
+Epoch 4/100
+205/205 [==============================] - 19s 93ms/step - loss: 1.3193 - accuracy: 0.3494 - val_loss: 1.2962 - val_accuracy: 0.3887 - lr: 0.0010
+Epoch 5/100
+205/205 [==============================] - 19s 93ms/step - loss: 1.2621 - accuracy: 0.3967 - val_loss: 1.2237 - val_accuracy: 0.4336 - lr: 0.0010
+Epoch 6/100
+205/205 [==============================] - 19s 94ms/step - loss: 1.2083 - accuracy: 0.4453 - val_loss: 1.1797 - val_accuracy: 0.4957 - lr: 8.5000e-04
+Epoch 7/100
+205/205 [==============================] - 23s 113ms/step - loss: 1.1739 - accuracy: 0.4684 - val_loss: 1.1735 - val_accuracy: 0.4872 - lr: 8.5000e-04
+Epoch 8/100
+205/205 [==============================] - 20s 97ms/step - loss: 1.1378 - accuracy: 0.4975 - val_loss: 1.1427 - val_accuracy: 0.5043 - lr: 8.5000e-04
+Epoch 9/100
+205/205 [==============================] - 19s 93ms/step - loss: 1.1030 - accuracy: 0.5255 - val_loss: 1.0994 - val_accuracy: 0.5332 - lr: 8.5000e-04
+Epoch 10/100
+205/205 [==============================] - 19s 93ms/step - loss: 1.0675 - accuracy: 0.5538 - val_loss: 1.0971 - val_accuracy: 0.5535 - lr: 8.5000e-04
+Epoch 11/100
+205/205 [==============================] - 19s 93ms/step - loss: 1.0388 - accuracy: 0.5622 - val_loss: 1.0484 - val_accuracy: 0.5535 - lr: 7.2250e-04
+Epoch 12/100
+205/205 [==============================] - 19s 93ms/step - loss: 1.0186 - accuracy: 0.5710 - val_loss: 1.0774 - val_accuracy: 0.5771 - lr: 7.2250e-04
+Epoch 13/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.9988 - accuracy: 0.5867 - val_loss: 1.0599 - val_accuracy: 0.5910 - lr: 7.2250e-04
+Epoch 14/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.9891 - accuracy: 0.5846 - val_loss: 1.0498 - val_accuracy: 0.5782 - lr: 7.2250e-04
+Epoch 15/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.9750 - accuracy: 0.5956 - val_loss: 0.9959 - val_accuracy: 0.5867 - lr: 7.2250e-04
+Epoch 16/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.9540 - accuracy: 0.6043 - val_loss: 1.0042 - val_accuracy: 0.5921 - lr: 6.1412e-04
+Epoch 17/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.9467 - accuracy: 0.6102 - val_loss: 0.9798 - val_accuracy: 0.6071 - lr: 6.1412e-04
+Epoch 18/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.9392 - accuracy: 0.6152 - val_loss: 1.0189 - val_accuracy: 0.5931 - lr: 6.1412e-04
+Epoch 19/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.9376 - accuracy: 0.6190 - val_loss: 0.9710 - val_accuracy: 0.6049 - lr: 6.1412e-04
+Epoch 20/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.9240 - accuracy: 0.6209 - val_loss: 1.0363 - val_accuracy: 0.5889 - lr: 6.1412e-04
+Epoch 21/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.9063 - accuracy: 0.6261 - val_loss: 0.9635 - val_accuracy: 0.6017 - lr: 5.2201e-04
+Epoch 22/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.9126 - accuracy: 0.6247 - val_loss: 0.9997 - val_accuracy: 0.5857 - lr: 5.2201e-04
+Epoch 23/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.8889 - accuracy: 0.6365 - val_loss: 0.9619 - val_accuracy: 0.6039 - lr: 5.2201e-04
+Epoch 24/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.8853 - accuracy: 0.6368 - val_loss: 0.9286 - val_accuracy: 0.6199 - lr: 5.2201e-04
+Epoch 25/100
+205/205 [==============================] - 19s 92ms/step - loss: 0.8704 - accuracy: 0.6509 - val_loss: 0.9571 - val_accuracy: 0.6285 - lr: 5.2201e-04
+Epoch 26/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.8554 - accuracy: 0.6514 - val_loss: 0.9689 - val_accuracy: 0.6146 - lr: 4.4371e-04
+Epoch 27/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.8556 - accuracy: 0.6521 - val_loss: 0.9145 - val_accuracy: 0.6306 - lr: 4.4371e-04
+Epoch 28/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.8367 - accuracy: 0.6595 - val_loss: 0.9996 - val_accuracy: 0.6135 - lr: 4.4371e-04
+Epoch 29/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.8404 - accuracy: 0.6575 - val_loss: 0.9378 - val_accuracy: 0.6285 - lr: 4.4371e-04
+Epoch 30/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.8200 - accuracy: 0.6670 - val_loss: 0.9337 - val_accuracy: 0.6328 - lr: 4.4371e-04
+Epoch 31/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.8168 - accuracy: 0.6740 - val_loss: 0.9234 - val_accuracy: 0.6285 - lr: 3.7715e-04
+Epoch 32/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.8111 - accuracy: 0.6731 - val_loss: 0.9192 - val_accuracy: 0.6349 - lr: 3.7715e-04
+Epoch 33/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.8099 - accuracy: 0.6726 - val_loss: 0.9216 - val_accuracy: 0.6392 - lr: 3.7715e-04
+Epoch 34/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.8021 - accuracy: 0.6765 - val_loss: 0.9516 - val_accuracy: 0.6296 - lr: 1.8857e-04
+Epoch 35/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.7951 - accuracy: 0.6778 - val_loss: 0.9216 - val_accuracy: 0.6392 - lr: 3.7715e-04
+Epoch 36/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7837 - accuracy: 0.6852 - val_loss: 0.9008 - val_accuracy: 0.6360 - lr: 3.2058e-04
+Epoch 37/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7739 - accuracy: 0.6866 - val_loss: 0.9650 - val_accuracy: 0.6263 - lr: 3.2058e-04
+Epoch 38/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.7761 - accuracy: 0.6867 - val_loss: 0.9235 - val_accuracy: 0.6478 - lr: 3.2058e-04
+Epoch 39/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7664 - accuracy: 0.6951 - val_loss: 0.9248 - val_accuracy: 0.6542 - lr: 3.2058e-04
+Epoch 40/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7569 - accuracy: 0.7000 - val_loss: 0.8951 - val_accuracy: 0.6542 - lr: 3.2058e-04
+Epoch 41/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7505 - accuracy: 0.6974 - val_loss: 0.9408 - val_accuracy: 0.6445 - lr: 2.7249e-04
+Epoch 42/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7511 - accuracy: 0.7005 - val_loss: 0.9151 - val_accuracy: 0.6392 - lr: 2.7249e-04
+Epoch 43/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7513 - accuracy: 0.7020 - val_loss: 0.9362 - val_accuracy: 0.6392 - lr: 2.7249e-04
+Epoch 44/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7443 - accuracy: 0.7017 - val_loss: 0.9026 - val_accuracy: 0.6370 - lr: 2.7249e-04
+Epoch 45/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7415 - accuracy: 0.7094 - val_loss: 0.9274 - val_accuracy: 0.6253 - lr: 2.7249e-04
+Epoch 46/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7277 - accuracy: 0.7082 - val_loss: 0.9136 - val_accuracy: 0.6424 - lr: 2.3162e-04
+Epoch 47/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7246 - accuracy: 0.7173 - val_loss: 0.9403 - val_accuracy: 0.6370 - lr: 1.1581e-04
+Epoch 48/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.7153 - accuracy: 0.7166 - val_loss: 0.9260 - val_accuracy: 0.6456 - lr: 2.3162e-04
+Epoch 49/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7187 - accuracy: 0.7157 - val_loss: 0.9428 - val_accuracy: 0.6370 - lr: 2.3162e-04
+Epoch 50/100
+205/205 [==============================] - 23s 112ms/step - loss: 0.7233 - accuracy: 0.7128 - val_loss: 0.9075 - val_accuracy: 0.6435 - lr: 2.3162e-04
+Epoch 51/100
+205/205 [==============================] - 19s 93ms/step - loss: 0.7069 - accuracy: 0.7232 - val_loss: 0.9015 - val_accuracy: 0.6531 - lr: 1.9687e-04
+Epoch 52/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.7052 - accuracy: 0.7213 - val_loss: 0.9329 - val_accuracy: 0.6445 - lr: 1.9687e-04
+Epoch 53/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.6960 - accuracy: 0.7273 - val_loss: 0.9383 - val_accuracy: 0.6478 - lr: 1.9687e-04
+Epoch 54/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.6862 - accuracy: 0.7339 - val_loss: 0.9737 - val_accuracy: 0.6349 - lr: 1.0000e-04
+Epoch 55/100
+205/205 [==============================] - 19s 94ms/step - loss: 0.6846 - accuracy: 0.7230 - val_loss: 0.9340 - val_accuracy: 0.6392 - lr: 1.9687e-04
+Evaluating model...
+59/59 [==============================] - 3s 43ms/step
+
+Test Accuracy: 0.6674
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.64      0.67      0.66       465
+           1       0.66      0.67      0.66       462
+           2       0.67      0.65      0.66       467
+           3       0.70      0.68      0.69       473
+
+    accuracy                           0.67      1867
+   macro avg       0.67      0.67      0.67      1867
+weighted avg       0.67      0.67      0.67      1867
+
+Model saved to tcn_transformer_eeg_model.h5
+
+Process finished with exit code 0
+
+ tcn_layer = compiled_tcn(
+        num_feat=num_features,
+        num_classes=num_classes,
+        nb_filters=64,
+        kernel_size=2,
+        dilations=[1, 2, 4, 8],
+        nb_stacks=1,
+        max_len=timesteps,
+        use_skip_connections=True,
+        return_sequences=True,
+        regression=False,
+        dropout_rate=0.3,
+        activation='relu',
+        opt='adam',
+        lr=0.0001
+    )

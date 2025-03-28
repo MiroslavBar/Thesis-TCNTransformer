@@ -236,7 +236,7 @@ def preprocess_data_for_tf(
 
     X_train, X_val, y_train, y_val = train_test_split(
         X_train, y_train,
-        test_size=val_size / (1 - test_size),  # Adjust val_size to be relative to remaining data
+        test_size=val_size / (1 - test_size),
         random_state=42,
         stratify=y_train
     )
@@ -293,7 +293,6 @@ def train_and_test_model(data: np.ndarray, labels: np.ndarray, config: Dict[str,
 
 
 def main() -> None:
-    # Parse command-line arguments to support different config files
     parser = argparse.ArgumentParser(description='EEG Classification Model')
     parser.add_argument('--config', default='103-config.yaml', help='Path to configuration file')
     args = parser.parse_args()

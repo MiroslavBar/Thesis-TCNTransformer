@@ -3,16 +3,21 @@ from tensorflow.keras.layers import LayerNormalization, MultiHeadAttention, Dens
 import tensorflow as tf
 
 
-def positional_encoding(position, d_model):
+def positional_encoding(position: int, d_model: int) -> tf.Tensor:
     """
-    Generate positional encoding for transformer
+    Generate positional encoding for transformer model.
+
+    This function creates a positional encoding matrix that helps the model
+    understand the relative or absolute position of tokens in a sequence.
+    It uses sine and cosine functions of different frequencies to generate
+    unique encodings for each position.
 
     Args:
-        position: sequence length
-        d_model: dimension of the model
+        position: The length of the sequence (number of tokens)
+        d_model: The dimensionality of the model's embeddings
 
     Returns:
-        Tensor of shape (1, position, d_model)
+        A tensor of shape (1, position, d_model) containing positional encodings
     """
     angle_rads = get_angles(
         np.arange(position)[:, np.newaxis],
@@ -31,15 +36,37 @@ def positional_encoding(position, d_model):
     return tf.cast(pos_encoding, dtype=tf.float32)
 
 
-def get_angles(pos, i, d_model):
-    """
-    Helper function for positional encoding
-    """
+def get_angles(pos: np.ndarray, i: np.ndarray, d_model: int) -> np.ndarray:
     angle_rates = 1 / np.power(10000, (2 * (i // 2)) / np.float32(d_model))
     return pos * angle_rates
 
 
-def transformer_encoder_block(inputs, num_heads, key_dim, dropout_rate):
+def transformer_encoder_block(
+    inputs: tf.Tensor,
+    num_heads: int,
+    key_dim: int,
+    dropout_rate: float
+) -> tf.Tensor:
+    """
+    Create a single transformer encoder block.
+
+    This function implements a standard transformer encoder block with:
+    1. Positional encoding
+    2. Multi-head self-attention mechanism
+    3. Feed-forward neural network
+    4. Residual connections
+    5. Layer normalization
+
+    Args:
+        inputs: Input tensor of shape (batch_size, sequence_length, embedding_dim)
+        num_heads: Number of attention heads
+        key_dim: Dimensionality of the key and query spaces
+        dropout_rate: Dropout rate for regularization
+
+    Returns:
+        Processed tensor after passing through the encoder block
+    """
+
     # Add positional encoding to the input first
     seq_length = inputs.shape[1]
     pos_enc = positional_encoding(seq_length, key_dim)
