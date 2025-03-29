@@ -17,10 +17,10 @@ network_args:
 model:
   # TCN (Temporal Convolutional Network) Parameters
   tcn:
-    nb_filters: 64
+    num_filters: 64
     kernel_size: 3
     dilations: [1, 2, 4, 8]
-    nb_stacks: 1
+    num_stacks: 1
     use_skip_connections: True
     dropout_rate: 0.2
     activation: 'relu'
