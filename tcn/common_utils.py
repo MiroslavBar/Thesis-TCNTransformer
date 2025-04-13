@@ -8,7 +8,7 @@ import yaml
 import sys
 
 from tcn import compiled_tcn
-from transformer import transformer_encoder_block
+from tcn.transformer import transformer_encoder_block
 
 def load_config(config_path='config.yaml') -> Dict[str, Any]:
     try:

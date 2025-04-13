@@ -1,0 +1,46 @@
+# EEG Classification Model Configuration
+
+# Data Loading and Preprocessing
+data:
+  data_dir: "C:/FAV/FAV/3.rocnik/bakalarka/competition_data/BCICIV_2a_gdf"
+  test_size: 0.2  # Proportion of data used for testing
+  validation_size: 0.1  # Proportion of training data used for validation
+
+# Model Architecture
+model:
+  # TCN (Temporal Convolutional Network) Parameters
+  tcn:
+    num_filters: 64
+    kernel_size: 2
+    dilations: [1, 2, 4, 8]
+    num_stacks: 1
+    use_skip_connections: True
+    dropout_rate: 0.3
+    activation: "relu"
+
+  # Transformer Encoder Parameters
+  transformer:
+    num_heads: 4
+    key_dim: 128
+    dropout_rate: 0.2
+
+# Training Configuration
+training:
+  batch_size: 32
+  epochs: 100
+  learning_rate: 0.001
+  early_stopping_patience: 10
+  reduce_lr_patience: 7
+  min_learning_rate: 0.0001
+
+# GPU Configuration
+gpu:
+  enable: True
+  memory_growth: True
+  mixed_precision: True
+
+# Logging
+logging:
+  model_path: "103_tcn_transformer_model.h5"
+  training_history_plot: "103_tcn_transformer_training_history.png"
+  confusion_matrix_plot: "103_tcn_transformer_confusion_matrix.png"
