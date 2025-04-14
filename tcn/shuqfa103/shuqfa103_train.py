@@ -294,7 +294,7 @@ def train_and_test_model(data: np.ndarray, labels: np.ndarray, config: Dict[str,
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='EEG Classification Model')
-    parser.add_argument('--config', default='103-config.yaml', help='Path to configuration file')
+    parser.add_argument('--config', default='shuqfa103_config.yaml', help='Path to configuration file')
     args = parser.parse_args()
 
     # Configure GPU based on configuration

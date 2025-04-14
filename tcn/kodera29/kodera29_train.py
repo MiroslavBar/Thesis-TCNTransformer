@@ -16,10 +16,10 @@ from tcn.common_utils import (
     plot_training_history,
     plot_confusion_matrix
 )
-from tcn.zcu.data_loading import file_manager
-from tcn.zcu.data_loading.EpochEvent import EpochEvent
-from tcn.zcu.data_loading.MovementType import MovementType
-from tcn.zcu.data_loading.utils import find_min_sampling_frequency, get_epochs, drop_half_resting, \
+from tcn.kodera29.data_loading import file_manager
+from tcn.kodera29.data_loading.EpochEvent import EpochEvent
+from tcn.kodera29.data_loading.MovementType import MovementType
+from tcn.kodera29.data_loading.utils import find_min_sampling_frequency, get_epochs, drop_half_resting, \
     transform_data_representation
 
 
@@ -244,7 +244,7 @@ def train_and_test_model(data: np.ndarray, labels: np.ndarray, config: Dict[str,
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='EEG Classification Model')
-    parser.add_argument('--config', default='zcu-config.yaml', help='Path to configuration file')
+    parser.add_argument('--config', default='kodera29_config.yaml', help='Path to configuration file')
     args = parser.parse_args()
 
     # Configure GPU based on configuration

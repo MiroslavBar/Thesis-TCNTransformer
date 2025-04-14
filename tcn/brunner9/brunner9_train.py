@@ -48,7 +48,7 @@ def load_and_combine_data(
     X_all = []
     y_all = []
 
-    preprocessed_data_path = "preprocessed-data-competition"
+    preprocessed_data_path = "preprocessed-data-brunner9"
 
     if not os.path.exists(preprocessed_data_path):
         print("Preprocessing data...")
@@ -178,7 +178,7 @@ def train_and_test_model(data: np.ndarray, labels: np.ndarray, config: Dict[str,
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='EEG Classification Model')
-    parser.add_argument('--config', default='competition-config.yaml', help='Path to configuration file')
+    parser.add_argument('--config', default='brunner9_config.yaml', help='Path to configuration file')
     args = parser.parse_args()
 
     # Configure GPU based on configuration
@@ -188,9 +188,9 @@ def main() -> None:
     # Load and combine data from all subjects
     data, labels = load_and_combine_data(config['data']['data_dir'])
 
-    # if data is not None and labels is not None:
-    #     # Train and test the model
-    #     train_and_test_model(data, labels, config)
+    if data is not None and labels is not None:
+        # Train and test the model
+        train_and_test_model(data, labels, config)
 
 if __name__ == "__main__":
     matplotlib.use('TkAgg')

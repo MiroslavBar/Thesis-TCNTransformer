@@ -1,8 +1,8 @@
 import os
 import re
 
-from tcn.zcu.data_loading.MovementType import MovementType
-from tcn.zcu.data_loading.file_formats.FileFormat import FileFormat
+from tcn.kodera29.data_loading.MovementType import MovementType
+from tcn.kodera29.data_loading.file_formats.FileFormat import FileFormat
 
 
 class SalehFileFormat(FileFormat):

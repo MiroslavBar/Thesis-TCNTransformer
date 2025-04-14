@@ -1,0 +1,46 @@
+# EEG Classification Model Configuration
+
+# Data Loading and Preprocessing
+data:
+  data_dir: "C:/FAV/FAV/3.rocnik/bakalarka/competition_data/BCICIV_2a_gdf" # Directory containing the BCI Competition IV dataset 2a in GDF format
+  test_size: 0.2  # Proportion of data used for testing
+  validation_size: 0.1  # Proportion of training data used for validation
+
+# Model Architecture
+model:
+  # TCN (Temporal Convolutional Network) Parameters
+  tcn:
+    num_filters: 64  # Number of convolutional filters in each layer
+    kernel_size: 2  # Size of the convolutional kernel
+    dilations: [1, 2, 4, 8]  # Dilation rates for each layer - increases receptive field
+    num_stacks: 1  # Number of stacked TCN blocks
+    use_skip_connections: True  # Whether to use residual/skip connections between layers
+    dropout_rate: 0.3  # Dropout rate for regularization
+    activation: "relu"  # Activation function to use in TCN layers
+
+  # Transformer Encoder Parameters
+  transformer:
+    num_heads: 4  # Number of attention heads in multi-head attention
+    key_dim: 128  # Dimension of the key vectors in attention mechanism
+    dropout_rate: 0.2  # Dropout rate for transformer regularization
+
+# Training Configuration
+training:
+  batch_size: 32  # Number of samples per gradient update
+  epochs: 100  # Maximum number of training epochs
+  learning_rate: 0.001  # Initial learning rate for optimizer
+  early_stopping_patience: 10  # Number of epochs with no improvement before stopping
+  reduce_lr_patience: 7  # Number of epochs with no improvement before reducing learning rate
+  min_learning_rate: 0.0001  # Minimum value for the learning rate
+
+# GPU Configuration
+gpu:
+  enable: True  # Whether to use GPU acceleration
+  memory_growth: True  # Allow TensorFlow to allocate memory as needed instead of all at once
+  mixed_precision: True  # Use mixed precision training (FP16) for faster computation on compatible GPUs
+
+# Logging
+logging:
+  model_path: "103_tcn_transformer_model.h5"  # File path to save the trained model
+  training_history_plot: "103_tcn_transformer_training_history.png"  # File path to save the training history plot
+  confusion_matrix_plot: "103_tcn_transformer_confusion_matrix.png"  # File path to save the confusion matrix plot

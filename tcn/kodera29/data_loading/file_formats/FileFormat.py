@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import mne
 from mne.io import Raw
 
-from tcn.zcu.data_loading.MovementType import MovementType
+from tcn.kodera29.data_loading.MovementType import MovementType
 
 
 class FileFormat(ABC):

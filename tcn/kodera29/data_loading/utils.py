@@ -5,9 +5,9 @@ import mne
 import numpy as np
 from mne import Epochs
 
-from tcn.zcu.data_loading.EpochEvent import EpochEvent
-from tcn.zcu.data_loading.MovementType import MovementType
-from tcn.zcu.data_loading.file_formats import FileFormat
+from tcn.kodera29.data_loading.EpochEvent import EpochEvent
+from tcn.kodera29.data_loading.MovementType import MovementType
+from tcn.kodera29.data_loading.file_formats import FileFormat
 
 
 def find_min_sampling_frequency(files_per_person: list[list[FileFormat]]) -> int:

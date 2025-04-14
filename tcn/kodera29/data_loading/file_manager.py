@@ -4,9 +4,9 @@ from typing import Dict, Any
 
 import numpy as np
 
-from tcn.zcu.data_loading.file_formats.FileFormat import FileFormat
-from tcn.zcu.data_loading.file_formats.SalehFileFormat import SalehFileFormat
-from tcn.zcu.data_loading.file_formats.MochuraFileFormat import MochuraFileFormat
+from tcn.kodera29.data_loading.file_formats.FileFormat import FileFormat
+from tcn.kodera29.data_loading.file_formats.SalehFileFormat import SalehFileFormat
+from tcn.kodera29.data_loading.file_formats.MochuraFileFormat import MochuraFileFormat
 
 preprocessed_data_folder = "preprocessed_data/"
 
