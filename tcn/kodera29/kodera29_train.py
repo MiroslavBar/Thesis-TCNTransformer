@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import matplotlib
 from typing import Dict, Optional, Tuple, Any
+import joblib
 
 from tcn.common_utils import (
     load_config,
@@ -165,10 +166,12 @@ def preprocess_data_for_tf(
 
     # Normalize each channel separately
     X_normalized = np.zeros_like(X, dtype=np.float32)
+    scalers = []
     for i in range(X.shape[1]):  # Iterate over channels
         channel_data = X[:, i, :]
         scaler = StandardScaler()
         X_normalized[:, i, :] = scaler.fit_transform(channel_data)
+        scalers.append(scaler)  # Save each scaler
 
     # Transpose data to shape [n_samples, n_times, n_channels]
     X_normalized = np.transpose(X_normalized, (0, 2, 1))
@@ -198,7 +201,7 @@ def preprocess_data_for_tf(
     print("Val set distribution:", np.bincount(y_val))
     print("Test set distribution:", np.bincount(y_test))
 
-    return X_train, X_val, X_test, y_train, y_val, y_test, num_classes
+    return X_train, X_val, X_test, y_train, y_val, y_test, num_classes, scalers
 
 
 def train_and_test_model(data: np.ndarray, labels: np.ndarray, config: Dict[str, Any]) -> None:
@@ -216,7 +219,7 @@ def train_and_test_model(data: np.ndarray, labels: np.ndarray, config: Dict[str,
     labels = transform_labels(labels)
 
     # Preprocess the data
-    X_train, X_val, X_test, y_train, y_val, y_test, num_classes = preprocess_data_for_tf(data, labels, config)
+    X_train, X_val, X_test, y_train, y_val, y_test, num_classes, scalers = preprocess_data_for_tf(data, labels, config)
 
     # Get model dimensions
     timesteps, num_features = X_train.shape[1], X_train.shape[2]
@@ -240,6 +243,11 @@ def train_and_test_model(data: np.ndarray, labels: np.ndarray, config: Dict[str,
     # Save the model
     model.save(config['logging']['model_path'])
     print("Model saved")
+
+    # Save scalers
+    scaler_path = config['logging'].get('scaler_path', 'scalers.pkl')
+    joblib.dump(scalers, scaler_path)
+    print(f"Scalers saved to {scaler_path}")
 
 
 def main() -> None:

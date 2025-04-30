@@ -1,8 +1,8 @@
-numpy~=2.1.3
+numpy~=1.26.2
 keract~=4.5.1
 matplotlib~=3.10.1
 pydot
-tensorflow~=2.19.0
+tensorflow~=2.10.0
 scikit-learn~=1.6.1
 PyYAML~=6.0.2
 pandas~=2.2.3
