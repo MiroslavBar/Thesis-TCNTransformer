@@ -17,7 +17,7 @@ from tcn.common_utils import (
     plot_training_history,
     plot_confusion_matrix
 )
-from preprocess_data import preprocess_competition
+from tcn.brunner9.preprocess_data import preprocess_competition
 
 np.random.seed(42)
 tf.random.set_seed(42)
