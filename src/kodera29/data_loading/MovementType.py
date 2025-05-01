@@ -1,6 +1,6 @@
 from enum import Enum
 
-from tcn.kodera29.data_loading.EpochEvent import EpochEvent
+from src.kodera29.data_loading.EpochEvent import EpochEvent
 
 
 class MovementType(Enum):

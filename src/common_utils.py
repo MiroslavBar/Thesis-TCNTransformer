@@ -7,8 +7,8 @@ import tensorflow as tf
 import yaml
 import sys
 
-from tcn import compiled_tcn
-from tcn.transformer import transformer_encoder_block
+from src import compiled_tcn
+from src.transformer import transformer_encoder_block
 
 def load_config(config_path='config.yaml') -> Dict[str, Any]:
     try:

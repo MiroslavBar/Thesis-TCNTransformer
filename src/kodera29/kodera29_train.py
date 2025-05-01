@@ -8,7 +8,7 @@ import matplotlib
 from typing import Dict, Optional, Tuple, Any
 import joblib
 
-from tcn.common_utils import (
+from src.common_utils import (
     load_config,
     configure_gpu,
     build_tcn_transformer_model,
@@ -17,10 +17,10 @@ from tcn.common_utils import (
     plot_training_history,
     plot_confusion_matrix
 )
-from tcn.kodera29.data_loading import file_manager
-from tcn.kodera29.data_loading.EpochEvent import EpochEvent
-from tcn.kodera29.data_loading.MovementType import MovementType
-from tcn.kodera29.data_loading.utils import find_min_sampling_frequency, get_epochs, drop_half_resting, \
+from src.kodera29.data_loading import file_manager
+from src.kodera29.data_loading.EpochEvent import EpochEvent
+from src.kodera29.data_loading.MovementType import MovementType
+from src.kodera29.data_loading.utils import find_min_sampling_frequency, get_epochs, drop_half_resting, \
     transform_data_representation
 
 

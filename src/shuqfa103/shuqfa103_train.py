@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 import random
 from typing import Dict, List, Optional, Callable, Tuple, Any
 
-from tcn.common_utils import (
+from src.common_utils import (
     load_config,
     configure_gpu,
     build_tcn_transformer_model,

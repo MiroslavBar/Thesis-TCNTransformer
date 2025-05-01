@@ -8,7 +8,7 @@ import matplotlib
 from typing import Dict, List, Tuple, Any
 
 
-from tcn.common_utils import (
+from src.common_utils import (
     load_config,
     configure_gpu,
     build_tcn_transformer_model,
@@ -17,7 +17,7 @@ from tcn.common_utils import (
     plot_training_history,
     plot_confusion_matrix
 )
-from tcn.brunner9.preprocess_data import preprocess_competition
+from src.brunner9.preprocess_data import preprocess_competition
 
 np.random.seed(42)
 tf.random.set_seed(42)
