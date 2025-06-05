@@ -5,7 +5,7 @@ pydot
 tensorflow~=2.10.0
 scikit-learn~=1.6.1
 PyYAML~=6.0.2
-pandas~=2.2.3
+pandas~=2.3.0
 utils~=1.0.2
 keras~=2.10.0
 setuptools~=68.2.0
