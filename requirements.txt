@@ -1,5 +1,5 @@
 numpy~=1.26.2
-keract~=4.5.1
+keract~=4.5.2
 matplotlib~=3.10.1
 pydot
 tensorflow~=2.10.0
