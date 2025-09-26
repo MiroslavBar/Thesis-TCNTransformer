@@ -4,7 +4,7 @@ matplotlib~=3.10.1
 pydot
 tensorflow~=2.10.0
 scikit-learn~=1.6.1
-PyYAML~=6.0.2
+PyYAML~=6.0.3
 pandas~=2.2.3
 utils~=1.0.2
 keras~=2.10.0
