@@ -10,5 +10,5 @@ utils~=1.0.2
 keras~=2.10.0
 setuptools~=68.2.0
 scipy~=1.15.2
-mne~=1.9.0
+mne~=1.10.2
 tqdm~=4.67.1
